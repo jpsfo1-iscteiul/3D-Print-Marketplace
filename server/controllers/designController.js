@@ -1,6 +1,5 @@
-// server/controllers/designController.js - Simplified version
 const { saveDesignFile, getDesignFile } = require('../services/fileService');
-const { registerNFT, getDesignDetails, listDesignForSale } = require('../services/blockchainService');
+const { registerNFT, getDesignDetails, listDesignForSale, executeTransaction } = require('../services/blockchainService'); //  Added executeTransaction
 
 /**
  * Registers a new design and creates an NFT on Polygon
@@ -11,31 +10,30 @@ exports.registerDesign = async (req, res) => {
   try {
     const { name, description, creatorName } = req.body;
     const file = req.file; // From multer middleware
-    
+
     if (!file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
+
     if (!name || !description || !creatorName) {
       return res.status(400).json({ error: 'Missing required metadata' });
     }
-    
+
     // Save file to storage
     const fileInfo = await saveDesignFile(file);
-    
-    // Register design on the Polygon blockchain
-    const nftResult = await registerNFT(fileInfo.relativePath, {
+
+    // Prepare the transaction data for the frontend
+    const txData = await registerNFT(fileInfo.relativePath, {
       name,
       description,
-      creatorName
+      creatorName,
     });
-    
-    // Return success response
+
+    // Return the transaction data to the client
     res.status(200).json({
       success: true,
-      tokenId: nftResult.tokenId,
-      transactionHash: nftResult.transactionHash,
-      fileUrl: fileInfo.relativePath
+      txData, //  Send transaction data instead of transactionHash/tokenId
+      fileUrl: fileInfo.relativePath,
     });
   } catch (err) {
     console.error('Error registering design:', err);
@@ -51,10 +49,10 @@ exports.registerDesign = async (req, res) => {
 exports.getDesign = async (req, res) => {
   try {
     const { tokenId } = req.params;
-    
+
     // Get design details from blockchain
     const designDetails = await getDesignDetails(tokenId);
-    
+
     res.status(200).json(designDetails);
   } catch (err) {
     console.error('Error getting design:', err);
@@ -71,19 +69,19 @@ exports.listDesignForSale = async (req, res) => {
   try {
     const { tokenId } = req.params;
     const { price } = req.body;
-    
+
     if (!price || isNaN(parseFloat(price)) || parseFloat(price) <= 0) {
       return res.status(400).json({ error: 'Invalid price' });
     }
-    
-    // List the design for sale
-    const result = await listDesignForSale(tokenId, parseFloat(price));
-    
+
+    // Prepare the transaction data for the frontend
+    const txData = await listDesignForSale(tokenId, parseFloat(price));
+
     res.status(200).json({
       success: true,
       tokenId,
       price,
-      transactionHash: result.transactionHash
+      txData, //  Send transaction data
     });
   } catch (err) {
     console.error('Error listing design for sale:', err);
