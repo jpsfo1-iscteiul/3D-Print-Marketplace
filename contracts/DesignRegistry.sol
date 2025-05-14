@@ -17,7 +17,7 @@ contract DesignRegistry is ERC721URIStorage, Ownable {
     // Mapping from tokenId to additional metadata
     mapping(uint256 => DesignMetadata) public designMetadata;
 
-    constructor() ERC721("DesignToken", "DST") {}
+    constructor(address initialOwner) ERC721("DesignToken", "DST") Ownable(initialOwner) {}
 
     /**
      * @notice Registers a design and mints an NFT.
@@ -53,7 +53,9 @@ contract DesignRegistry is ERC721URIStorage, Ownable {
      * @return DesignMetadata The additional metadata for the token.
      */
     function getMetadata(uint256 tokenId) public view returns (DesignMetadata memory) {
-        require(_exists(tokenId), "Token does not exist");
+        if (_ownerOf(tokenId) == address(0)) {
+            revert("Token does not exist");
+        }
         return designMetadata[tokenId];
     }
 }

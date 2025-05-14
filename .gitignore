@@ -1,0 +1,23 @@
+# Truffle build artifacts
+build/
+truffle-config.js.swp
+truffle-config.js.swo
+
+# Development environment
+.env
+.DS_Store # macOS desktop services store
+
+# Node.js dependencies
+node_modules/
+
+# Temporary files and logs
+./test/*.log
+./coverage
+./coverage.json
+
+# IDE specific files (adjust as needed)
+.idea/
+.vscode/
+
+# OS generated files
+Thumbs.db
