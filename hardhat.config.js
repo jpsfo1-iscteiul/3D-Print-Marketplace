@@ -1,27 +1,20 @@
+// hardhat.config.js
 require("@nomicfoundation/hardhat-toolbox");
-require("dotenv").config();
 
 /** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  solidity: "0.8.20",
+  solidity: "0.8.28",
   networks: {
-    // Polygon Mumbai Testnet
-    mumbai: {
-      url: process.env.POLYGON_MUMBAI_RPC || "https://rpc-mumbai.maticvigil.com",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 80001
+    hardhat: {
+      // You can configure this for a local development network if needed,
+      // but defaults are usually fine for npx hardhat node
     },
-    // Polygon Mainnet
-    polygon: {
-      url: process.env.POLYGON_MAINNET_RPC || "https://polygon-rpc.com",
-      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 137
-    }
+    // Example for Sepolia testnet (UNCOMMENT AND FILL IN LATER WHEN READY FOR TESTNET)
+    /*
+    sepolia: {
+      url: `YOUR_SEPOLIA_RPC_URL`, // e.g., `https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY`
+      accounts: [`YOUR_PRIVATE_KEY`], // Your metamask private key (be careful with this!)
+    },
+    */
   },
-  etherscan: {
-    apiKey: {
-      polygonMumbai: process.env.POLYGONSCAN_API_KEY,
-      polygon: process.env.POLYGONSCAN_API_KEY
-    }
-  }
 };

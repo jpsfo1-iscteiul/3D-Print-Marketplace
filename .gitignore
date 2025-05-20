@@ -1,23 +1,17 @@
-# Truffle build artifacts
-build/
-truffle-config.js.swp
-truffle-config.js.swo
-
-# Development environment
+node_modules
 .env
-.DS_Store # macOS desktop services store
 
-# Node.js dependencies
-node_modules/
+# Hardhat files
+/cache
+/artifacts
 
-# Temporary files and logs
-./test/*.log
-./coverage
-./coverage.json
+# TypeChain files
+/typechain
+/typechain-types
 
-# IDE specific files (adjust as needed)
-.idea/
-.vscode/
+# solidity-coverage files
+/coverage
+/coverage.json
 
-# OS generated files
-Thumbs.db
+# Hardhat Ignition default folder for deployments against a local node
+ignition/deployments/chain-31337
