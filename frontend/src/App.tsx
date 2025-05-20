@@ -1,15 +1,18 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { UserProvider } from "./context/UserContext";
-import Layout from "./components/Layout";
-import Designs from "./pages/Designs";
-import SubmitDesign from "./pages/SubmitDesign";
-import Reports from "./pages/Reports";
-import NotFound from "./pages/NotFound";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { UserProvider } from "./context/UserContext.tsx";
+import { appRoutes, AppRoute } from "@/routes";
+
+function renderRoutes(routes: AppRoute[]) {
+  return routes.map(({ path, element, children }) => (
+    <Route key={path} path={path} element={element}>
+      {children && renderRoutes(children)}
+    </Route>
+  ));
+}
 
 // Create a client
 const queryClient = new QueryClient();
@@ -28,15 +31,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Layout />}>
-              <Route index element={<Navigate to="/designs" replace />} />
-              <Route path="designs" element={<Designs />} />
-              <Route path="submit-design" element={<SubmitDesign />} />
-              <Route path="reports" element={<Reports />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <Routes>{renderRoutes(appRoutes)}</Routes>
         </BrowserRouter>
       </UserProvider>
     </TooltipProvider>
