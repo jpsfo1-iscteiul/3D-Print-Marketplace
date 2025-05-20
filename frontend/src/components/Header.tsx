@@ -1,13 +1,14 @@
-
 import React from 'react';
 import { LogOut, User, Loader2 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
+import { useLanguage } from "../context/LanguageContext";
 
 const Header = () => {
   const { userRole, setUserRole, isMetaMaskConnected, connectMetaMask, isAuthenticating } = useUser();
+  const { language, t } = useLanguage();
 
   const handleRoleChange = (value: string) => {
     if (!isMetaMaskConnected) {
@@ -35,7 +36,7 @@ const Header = () => {
       
       <div className="flex items-center gap-4">
         <div className="flex items-center">
-          <span className="text-sm text-gray-500 mr-2">Login as:</span>
+          <span className="text-sm text-gray-500 mr-2">{t.header.loginAs}</span>
           <Select 
             value={userRole} 
             onValueChange={handleRoleChange}
@@ -45,9 +46,9 @@ const Header = () => {
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Designer">Designer</SelectItem>
-              <SelectItem value="Consumer">Consumer</SelectItem>
-              <SelectItem value="Factory">Factory</SelectItem>
+              <SelectItem value="Designer">{t.header.designer}</SelectItem>
+              <SelectItem value="Consumer">{t.header.consumer}</SelectItem>
+              <SelectItem value="Factory" disabled>{t.header.factory}</SelectItem>
             </SelectContent>
           </Select>
         </div>

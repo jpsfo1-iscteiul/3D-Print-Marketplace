@@ -4,6 +4,7 @@ import Designs from "@/pages/Designs";
 import SubmitDesign from "@/pages/SubmitDesign";
 import Reports from "@/pages/Reports";
 import NotFound from "@/pages/NotFound";
+import ExploreDesigns from "@/pages/ExploreDesigns";
 
 export interface AppRoute {
   path: string;
@@ -16,7 +17,8 @@ export const appRoutes: AppRoute[] = [
     path: "/",
     element: <Layout />,
     children: [
-      { path: "", element: <Navigate to="/designs" replace /> },
+      { path: "", element: <Navigate to="/explore-designs" replace /> },
+      { path: "explore-designs", element: <ExploreDesigns /> },
       { path: "designs", element: <Designs /> },
       { path: "submit-design", element: <SubmitDesign /> },
       { path: "reports", element: <Reports /> },
