@@ -35,8 +35,9 @@ const pt = {
     previous: "Anterior",
     next: "Próxima",
     page: "Página",
-    of: "de",
-    noDesigns: "Nenhum design encontrado."
+    of: "de",    noDesigns: "Nenhum design encontrado",
+    noDesignsDescription: "Seja o primeiro a submeter um design no nosso marketplace. As suas criações podem ser o próximo sucesso!",
+    submitDesign: "Submeter Design"
   }
 };
 export default pt;

@@ -1,29 +1,9 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
 
-// Mock data for demonstration
-const mockDesigns = Array.from({ length: 20 }, (_, i) => ({
-  id: i + 1,
-  name: `Design ${i + 1}`,
-  manufacturer: `Manufacturer ${((i % 4) + 1)}`,
-  rating: Math.ceil(Math.random() * 5),
-  price: Math.floor(Math.random() * 100) + 10,
-  available: Math.floor(Math.random() * 100),
-  // Imagens mock reais
-  image: [
-    "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-    "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80"
-  ][i % 4],
-}));
-
-const manufacturers = [
-  "Manufacturer 1",
-  "Manufacturer 2",
-  "Manufacturer 3",
-  "Manufacturer 4",
-];
+// Real data will come from the blockchain
+const designs = [];
+const manufacturers = [];
 
 export default function ExploreDesigns() {
   const { t } = useLanguage();
@@ -34,9 +14,8 @@ export default function ExploreDesigns() {
   const [available, setAvailable] = useState([0, 100]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-
   // Filter logic
-  const filtered = mockDesigns.filter((d) => {
+  const filtered = designs.filter((d) => {
     return (
       d.name.toLowerCase().includes(search.toLowerCase()) &&
       (!manufacturer || d.manufacturer === manufacturer) &&
@@ -138,9 +117,34 @@ export default function ExploreDesigns() {
             <div className="mb-1">{t.explore.price} €{d.price}</div>
             <div className="mb-1">{t.explore.availability} {d.available}</div>
           </div>
-        ))}
-        {paginated.length === 0 && (
-          <div className="col-span-4 text-center text-gray-400">{t.explore.noDesigns}</div>
+        ))}        {paginated.length === 0 && (
+          <div className="col-span-4 flex flex-col items-center justify-center p-12 text-center">
+            <svg
+              className="w-32 h-32 text-gray-300 mb-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1}
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+              />
+            </svg>
+            <h3 className="text-xl font-semibold text-gray-700 mb-2">
+              {t.explore.noDesigns}
+            </h3>
+            <p className="text-gray-500 mb-6 max-w-md">
+              {t.explore.noDesignsDescription || "Be the first to submit a design to our marketplace. Your creations could be the next big thing!"}
+            </p>
+            <button
+              onClick={() => window.location.href = '/submit-design'}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              {t.explore.submitDesign || "Submit a Design"}
+            </button>
+          </div>
         )}
       </div>
       {/* Paginação */}

@@ -35,8 +35,9 @@ const en = {
     previous: "Previous",
     next: "Next",
     page: "Page",
-    of: "of",
-    noDesigns: "No designs found."
+    of: "of",    noDesigns: "No designs found",
+    noDesignsDescription: "Be the first to submit a design to our marketplace. Your creations could be the next big thing!",
+    submitDesign: "Submit a Design"
   }
 };
 export default en;
