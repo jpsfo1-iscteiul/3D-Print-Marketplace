@@ -11,6 +11,22 @@ const en = {
     comingSoon: "Coming Soon",
     copyright: "© 2025 3D Blockchain Platform"
   },
+  myDesigns: {
+    title: "My Designs",
+    connectWallet: "Connect MetaMask to Access Your Designs",
+    connectWalletDesc: "You need to connect your MetaMask wallet to view and manage your designs.",
+    noDesigns: "No Designs Found",
+    noDesignsDesc: "You haven't submitted any designs yet. Start by creating your first design!",
+    submitFirst: "Submit Your First Design",
+    status: "Status:",
+    sales: "Sales:",
+    licenses: "Licenses:",
+    manage: "Manage",
+    connectToManage: "Connect to Manage",
+    tryAgain: "Try Again",
+    errorLoading: "Error Loading Your Designs",
+    loading: "Loading designs..."
+  },
   notFound: {
     title: "404",
     subtitle: "Oops! This page is still being printed...",

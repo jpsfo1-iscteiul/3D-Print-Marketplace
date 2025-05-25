@@ -1,97 +1,177 @@
-
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUser } from '../context/UserContext';
+import { useLanguage } from "../context/LanguageContext";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 
-// Mock data for designs
-const designs = [
-  {
-    id: 1,
-    title: 'Design A',
-    status: 'Active',
-    sales: 45,
-    licenses: 120
-  },
-  {
-    id: 2,
-    title: 'Design B',
-    status: 'In Review',
-    sales: 0,
-    licenses: 0
-  }
-];
+// Data will come from blockchain based on connected wallet
+const designs = [];
 
 const Designs = () => {
+  const { t } = useLanguage();
   const { isMetaMaskConnected, connectMetaMask } = useUser();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleManage = () => {
+  // Function to load user's designs from blockchain
+  const loadUserDesigns = async () => {
+    if (!isMetaMaskConnected) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // TODO: Implement blockchain call to get user's designs
+      // This will be implemented when blockchain is ready
+      setLoading(false);
+    } catch (err) {
+      console.error('Error loading designs:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setLoading(false);
+    }
+  };
+
+  // Load designs when MetaMask connection changes
+  useEffect(() => {
+    if (isMetaMaskConnected) {
+      loadUserDesigns();
+    }
+  }, [isMetaMaskConnected]);
+
+  const handleManage = (designId: number) => {
     if (!isMetaMaskConnected) {
       toast({
-        title: "MetaMask not connected",
-        description: "Please connect your wallet to manage designs",
+        title: t.header.metamaskNotConnected,
+        description: t.myDesigns.connectWalletDesc,
         variant: "destructive"
       });
       return;
     }
     
-    // Handle manage design
-    console.log('Managing design');
+    // TODO: Implement design management logic
+    console.log('Managing design:', designId);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin" />
+        <span className="ml-2">{t.myDesigns.loading}</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 text-center">
+        <svg
+          className="w-32 h-32 text-red-300 mb-6"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1}
+            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+          />
+        </svg>
+        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+          {t.myDesigns.errorLoading}
+        </h3>
+        <p className="text-gray-500 mb-6 max-w-md">
+          {error}
+        </p>
+        <Button onClick={loadUserDesigns}>
+          {t.myDesigns.tryAgain}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">My Designs</h1>
+      <h1 className="text-2xl font-bold mb-6">{t.myDesigns.title}</h1>
       
       {!isMetaMaskConnected ? (
         <div className="bg-amber-50 border border-amber-200 p-6 rounded-lg mb-6">
-          <h2 className="text-lg font-medium text-amber-800 mb-2">Connect MetaMask to Access All Features</h2>
-          <p className="text-amber-700 mb-4">You need to connect your MetaMask wallet to fully access the platform.</p>
+          <h2 className="text-lg font-medium text-amber-800 mb-2">{t.myDesigns.connectWallet}</h2>
+          <p className="text-amber-700 mb-4">{t.myDesigns.connectWalletDesc}</p>
           <Button onClick={connectMetaMask}>Connect MetaMask</Button>
         </div>
-      ) : null}
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {designs.map((design) => (
-          <Card key={design.id} className="shadow-sm">
-            <CardContent className="pt-6">
-              <h2 className="text-xl font-semibold text-center mb-4">{design.title}</h2>
+      ) : designs.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 text-center">
+          <svg
+            className="w-32 h-32 text-gray-300 mb-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1}
+              d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+            />
+          </svg>
+          <h3 className="text-xl font-semibold text-gray-700 mb-2">
+            {t.myDesigns.noDesigns}
+          </h3>
+          <p className="text-gray-500 mb-6 max-w-md">
+            {t.myDesigns.noDesignsDesc}
+          </p>          <Button onClick={() => navigate('/submit-design')}>
+            {t.myDesigns.submitFirst}
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {designs.map((design) => (
+            <Card key={design.id} className="shadow-sm">
+              <CardContent className="pt-6">
+                <h2 className="text-xl font-semibold text-center mb-4">{design.title}</h2>
               
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <Badge variant={design.status === 'Active' ? "success" : "secondary"}>
-                    {design.status}
-                  </Badge>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{t.myDesigns.status}</span>
+                    <Badge variant={design.status === 'Active' ? "success" : "secondary"}>
+                      {design.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{t.myDesigns.sales}</span>
+                    <span className="font-medium">{design.sales}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">{t.myDesigns.licenses}</span>
+                    <span className="font-medium">{design.licenses}</span>
+                  </div>
                 </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Sales:</span>
-                  <span className="font-medium">{design.sales}</span>
-                </div>
-                
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Licenses:</span>
-                  <span className="font-medium">{design.licenses}</span>
-                </div>
-              </div>
-            </CardContent>
-            
-            <CardFooter className="pt-2 pb-4">
-              <Button 
-                className="w-full" 
-                variant="default"
-                onClick={handleManage}
-                disabled={!isMetaMaskConnected}
-              >
-                {isMetaMaskConnected ? 'Manage' : 'Connect to Manage'}
-              </Button>
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+              
+              <CardFooter className="pt-2 pb-4">
+                <Button 
+                  className="w-full" 
+                  variant="default"
+                  onClick={() => handleManage(design.id)}
+                  disabled={!isMetaMaskConnected}
+                >
+                  {isMetaMaskConnected ? t.myDesigns.manage : t.myDesigns.connectToManage}
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

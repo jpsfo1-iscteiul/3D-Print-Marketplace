@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { useLanguage } from "../context/LanguageContext";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { useUser } from "../context/UserContext";
+import { toast } from "@/components/ui/use-toast";
 
 // Real data will come from the blockchain
 const designs = [];
@@ -7,6 +11,8 @@ const manufacturers = [];
 
 export default function ExploreDesigns() {
   const { t } = useLanguage();
+  const navigate = useNavigate();
+  const { isMetaMaskConnected, setUserRole } = useUser();
   const [search, setSearch] = useState("");
   const [manufacturer, setManufacturer] = useState("");
   const [rating, setRating] = useState(0);
@@ -29,8 +35,33 @@ export default function ExploreDesigns() {
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
+  const handleDesignClick = (designId: number) => {
+    navigate(`/design/${designId}`);
+  };
+  // Add submit design button
+  const handleSubmitDesign = () => {
+    if (!isMetaMaskConnected) {
+      toast({
+        title: t.header.metamaskNotConnected,
+        description: t.header.connectMetamask,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // Change role to Designer and navigate to submit design page
+    setUserRole('Designer');
+    navigate('/submit-design');
+  };
+
   return (
     <div className="p-6">
+      <div className="flex justify-between mb-6">
+        <h1 className="text-2xl font-bold">Explore Designs</h1>
+        <Button onClick={handleSubmitDesign}>
+          {t.explore.submitDesign}
+        </Button>
+      </div>
       {/* Search Bar */}
       <input
         className="w-full mb-4 p-2 border rounded"
@@ -109,7 +140,7 @@ export default function ExploreDesigns() {
       {/* Galeria */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {paginated.map(d => (
-          <div key={d.id} className="border rounded shadow p-2 flex flex-col items-center">
+          <div key={d.id} className="border rounded shadow p-2 flex flex-col items-center" onClick={() => handleDesignClick(d.id)}>
             <img src={d.image} alt={d.name} className="w-full h-40 object-cover mb-2 rounded" />
             <div className="font-bold mb-1">{d.name}</div>
             <div className="text-sm text-gray-500 mb-1">{d.manufacturer}</div>
@@ -137,9 +168,8 @@ export default function ExploreDesigns() {
             </h3>
             <p className="text-gray-500 mb-6 max-w-md">
               {t.explore.noDesignsDescription || "Be the first to submit a design to our marketplace. Your creations could be the next big thing!"}
-            </p>
-            <button
-              onClick={() => window.location.href = '/submit-design'}
+            </p>            <button
+              onClick={handleSubmitDesign}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
               {t.explore.submitDesign || "Submit a Design"}
