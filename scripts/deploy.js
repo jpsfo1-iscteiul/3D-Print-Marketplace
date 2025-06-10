@@ -1,52 +1,34 @@
 // scripts/deploy.js
-const { ethers } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-    const [deployer] = await ethers.getSigners();
+    const [deployer] = await hre.ethers.getSigners();
 
     console.log("Deploying contracts with the account:", deployer.address);
 
     // Deploy DesignRegistry
-    const DesignRegistry = await ethers.getContractFactory("DesignRegistry");
+    const DesignRegistry = await hre.ethers.getContractFactory("DesignRegistry");
     const designRegistry = await DesignRegistry.deploy(deployer.address);
-    await designRegistry.waitForDeployment(); // Use waitForDeployment for Hardhat 2.13.0 and later
-
-    console.log("DesignRegistry deployed to:", designRegistry.target); // Use .target for Hardhat 2.13.0 and later
+    await designRegistry.waitForDeployment();
+    console.log("DesignRegistry deployed to:", await designRegistry.getAddress());
 
     // Deploy NFTMarketplace
-    const NFTMarketplace = await ethers.getContractFactory("NFTMarketplace");
+    const NFTMarketplace = await hre.ethers.getContractFactory("NFTMarketplace");
     const nftMarketplace = await NFTMarketplace.deploy();
-    await nftMarketplace.waitForDeployment(); // Use waitForDeployment for Hardhat 2.13.0 and later
+    await nftMarketplace.waitForDeployment();
+    console.log("NFTMarketplace deployed to:", await nftMarketplace.getAddress());
 
-    console.log("NFTMarketplace deployed to:", nftMarketplace.target); // Use .target for Hardhat 2.13.0 and later
-
-    // (Optional) Save contract addresses to a file for frontend
-    const fs = require('fs');
-    const contractsDir = __dirname + '/../frontend/src/contracts';
-
-    if (!fs.existsSync(contractsDir)) {
-        fs.mkdirSync(contractsDir);
-    }
+    // Write contract addresses to a file that can be used by the frontend
+    const fs = require("fs");
+    const path = require("path");
+    const envContent = `VITE_DESIGN_REGISTRY_ADDRESS=${await designRegistry.getAddress()}
+VITE_NFT_MARKETPLACE_ADDRESS=${await nftMarketplace.getAddress()}`;
 
     fs.writeFileSync(
-        contractsDir + '/contract-addresses.json',
-        JSON.stringify({
-            DesignRegistry: designRegistry.target,
-            NFTMarketplace: nftMarketplace.target,
-        }, undefined, 2)
+        path.join(__dirname, "..", "frontend", ".env.local"),
+        envContent
     );
-
-    const DesignRegistryArtifact = artifacts.readArtifactSync("DesignRegistry");
-    fs.writeFileSync(
-        contractsDir + '/DesignRegistry.json',
-        JSON.stringify(DesignRegistryArtifact, null, 2)
-    );
-
-    const NFTMarketplaceArtifact = artifacts.readArtifactSync("NFTMarketplace");
-    fs.writeFileSync(
-        contractsDir + '/NFTMarketplace.json',
-        JSON.stringify(NFTMarketplaceArtifact, null, 2)
-    );
+    console.log("Contract addresses written to frontend/.env.local");
 }
 
 main()

@@ -5,22 +5,29 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { useLanguage } from "../context/LanguageContext";
+import { useWeb3 } from "../context/Web3Context";
 
 const Header = () => {
-  const { userRole, setUserRole, isMetaMaskConnected, connectMetaMask, isAuthenticating } = useUser();
+  const { userRole, setUserRole } = useUser();
   const { language, t } = useLanguage();
+  const { account, connectWallet, disconnectWallet, isDesigner, setIsDesigner } = useWeb3();
 
   const handleRoleChange = (value: string) => {
-    if (!isMetaMaskConnected) {
+    if (!account) {
       toast({
-        title: "MetaMask not connected",
-        description: "Please connect your MetaMask wallet to change roles",
+        title: t.header.metamaskNotConnected,
+        description: t.header.connectMetamask,
         variant: "destructive"
       });
       return;
     }
     
     setUserRole(value as any);
+    setIsDesigner(value === "Designer");
+  };
+
+  const handleLogout = () => {
+    disconnectWallet();
   };
 
   return (
@@ -40,7 +47,7 @@ const Header = () => {
           <Select 
             value={userRole} 
             onValueChange={handleRoleChange}
-            disabled={!isMetaMaskConnected}
+            disabled={!account}
           >
             <SelectTrigger className="w-32">
               <SelectValue placeholder="Role" />
@@ -54,34 +61,28 @@ const Header = () => {
         </div>
         
         <Button 
-          variant={isMetaMaskConnected ? "outline" : "default"} 
+          variant={account ? "outline" : "default"} 
           size="sm"
-          onClick={connectMetaMask}
-          disabled={isAuthenticating}
+          onClick={connectWallet}
           className="flex items-center gap-2"
         >
-          {isAuthenticating ? (
-            <>
-              <Loader2 size={16} className="animate-spin" />
-              <span>Connecting...</span>
-            </>
-          ) : isMetaMaskConnected ? (
+          {account ? (
             <>
               <span className="h-2 w-2 rounded-full bg-green-500"></span>
-              <span>Connected</span>
+              <span>{account.slice(0, 6)}...{account.slice(-4)}</span>
             </>
           ) : (
-            <>Connect MetaMask</>
+            <>Connect Wallet</>
           )}
         </Button>
         
-        {/* Only show profile and logout buttons when connected to MetaMask */}
-        {isMetaMaskConnected && (
+        {/* Only show profile and logout buttons when connected */}
+        {account && (
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon">
               <User size={20} />
             </Button>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" onClick={handleLogout}>
               <LogOut size={20} />
             </Button>
           </div>

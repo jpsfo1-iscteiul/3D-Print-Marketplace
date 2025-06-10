@@ -1,5 +1,8 @@
+# Dependencies
 node_modules
 .env
+.env.*
+!.env.example
 
 # Hardhat files
 /cache
@@ -13,5 +16,21 @@ node_modules
 /coverage
 /coverage.json
 
-# Hardhat Ignition default folder for deployments against a local node
-ignition/deployments/chain-31337
+# Hardhat Ignition files
+/ignition/deployments
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+/dist
+/build

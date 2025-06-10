@@ -1,46 +1,101 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../context/LanguageContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useUser } from "../context/UserContext";
+import { useWeb3 } from "../context/Web3Context";
+import { useDesign } from "../hooks/useDesign";
 import { toast } from "@/components/ui/use-toast";
 
-// Real data will come from the blockchain
-const designs = [];
-const manufacturers = [];
+interface Design {
+  id: string;
+  tokenURI: string;
+  creatorName: string;
+  description: string;
+  price: string;
+  owner: string;
+  isListed: boolean;
+}
 
 export default function ExploreDesigns() {
   const { t } = useLanguage();
   const navigate = useNavigate();
-  const { isMetaMaskConnected, setUserRole } = useUser();
+  const { userRole, setUserRole } = useUser();
+  const { account, isDesigner, setIsDesigner } = useWeb3();
+  const { getDesign, buyDesign, loading, error } = useDesign();
+  const [designs, setDesigns] = useState<Design[]>([]);
   const [search, setSearch] = useState("");
-  const [manufacturer, setManufacturer] = useState("");
-  const [rating, setRating] = useState(0);
-  const [price, setPrice] = useState([0, 100]);
-  const [available, setAvailable] = useState([0, 100]);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+
+  useEffect(() => {
+    const loadDesigns = async () => {
+      // In a real implementation, you would:
+      // 1. Query the total number of tokens
+      // 2. Fetch metadata for each token
+      // 3. Check if they are listed in the marketplace
+      // For now, we'll just show a placeholder
+      setDesigns([]);
+    };
+
+    if (account) {
+      loadDesigns();
+    }
+  }, [account]);
+
   // Filter logic
   const filtered = designs.filter((d) => {
     return (
-      d.name.toLowerCase().includes(search.toLowerCase()) &&
-      (!manufacturer || d.manufacturer === manufacturer) &&
-      (rating === 0 || d.rating === rating) &&
-      d.price >= price[0] && d.price <= price[1] &&
-      d.available >= available[0] && d.available <= available[1]
+      d.creatorName.toLowerCase().includes(search.toLowerCase()) ||
+      d.description.toLowerCase().includes(search.toLowerCase())
     );
   });
 
-  // Paginação
+  // Pagination
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
-  const handleDesignClick = (designId: number) => {
-    navigate(`/design/${designId}`);
+  const handleDesignClick = async (designId: string) => {
+    try {
+      const design = await getDesign(designId);
+      if (design) {
+        // In a real implementation, you would navigate to a detail page
+        console.log('Design details:', design);
+      }
+    } catch (err) {
+      console.error('Error fetching design:', err);
+    }
   };
-  // Add submit design button
+
+  const handleBuyDesign = async (design: Design) => {
+    if (!account) {
+      toast({
+        title: t.header.metamaskNotConnected,
+        description: t.header.connectMetamask,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const success = await buyDesign(design.id, design.price);
+      if (success) {
+        toast({
+          title: "Success!",
+          description: "You have successfully purchased the design.",
+        });
+      }
+    } catch (err) {
+      toast({
+        title: "Error",
+        description: "Failed to purchase the design. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleSubmitDesign = () => {
-    if (!isMetaMaskConnected) {
+    if (!account) {
       toast({
         title: t.header.metamaskNotConnected,
         description: t.header.connectMetamask,
@@ -49,8 +104,8 @@ export default function ExploreDesigns() {
       return;
     }
     
-    // Change role to Designer and navigate to submit design page
     setUserRole('Designer');
+    setIsDesigner(true);
     navigate('/submit-design');
   };
 
@@ -62,6 +117,7 @@ export default function ExploreDesigns() {
           {t.explore.submitDesign}
         </Button>
       </div>
+
       {/* Search Bar */}
       <input
         className="w-full mb-4 p-2 border rounded"
@@ -69,86 +125,34 @@ export default function ExploreDesigns() {
         value={search}
         onChange={e => { setSearch(e.target.value); setPage(1); }}
       />
-      {/* Filtros */}
-      <div className="flex gap-4 mb-6">
-        {/* Manufacturer Dropdown */}
-        <select
-          className="p-2 border rounded"
-          value={manufacturer}
-          onChange={e => setManufacturer(e.target.value)}
-        >
-          <option value="">{t.explore.manufacturer}</option>
-          {manufacturers.map(m => (
-            <option key={m} value={m}>{m}</option>
-          ))}
-        </select>
-        {/* Rating Dropdown */}
-        <select
-          className="p-2 border rounded"
-          value={rating}
-          onChange={e => setRating(Number(e.target.value))}
-        >
-          <option value={0}>{t.explore.rating}</option>
-          {[1,2,3,4,5].map(r => (
-            <option key={r} value={r}>{"★".repeat(r)}</option>
-          ))}
-        </select>
-        {/* Price Range */}
-        <div className="flex items-center gap-2">
-          <span>{t.explore.price}</span>
-          <input
-            type="number"
-            className="w-16 p-1 border rounded"
-            min={0}
-            max={price[1]}
-            value={price[0]}
-            onChange={e => setPrice([Number(e.target.value), price[1]])}
-          />
-          <span>-</span>
-          <input
-            type="number"
-            className="w-16 p-1 border rounded"
-            min={price[0]}
-            max={1000}
-            value={price[1]}
-            onChange={e => setPrice([price[0], Number(e.target.value)])}
-          />
-        </div>
-        {/* Disponibilidade Range */}
-        <div className="flex items-center gap-2">
-          <span>{t.explore.availability}</span>
-          <input
-            type="number"
-            className="w-16 p-1 border rounded"
-            min={0}
-            max={available[1]}
-            value={available[0]}
-            onChange={e => setAvailable([Number(e.target.value), available[1]])}
-          />
-          <span>-</span>
-          <input
-            type="number"
-            className="w-16 p-1 border rounded"
-            min={available[0]}
-            max={1000}
-            value={available[1]}
-            onChange={e => setAvailable([available[0], Number(e.target.value)])}
-          />
-        </div>
-      </div>
 
-      {/* Galeria */}
+      {/* Gallery */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {paginated.map(d => (
-          <div key={d.id} className="border rounded shadow p-2 flex flex-col items-center" onClick={() => handleDesignClick(d.id)}>
-            <img src={d.image} alt={d.name} className="w-full h-40 object-cover mb-2 rounded" />
-            <div className="font-bold mb-1">{d.name}</div>
-            <div className="text-sm text-gray-500 mb-1">{d.manufacturer}</div>
-            <div className="mb-1">{"★".repeat(d.rating)}{"☆".repeat(5-d.rating)}</div>
-            <div className="mb-1">{t.explore.price} €{d.price}</div>
-            <div className="mb-1">{t.explore.availability} {d.available}</div>
+        {paginated.map(design => (
+          <div key={design.id} className="border rounded shadow p-4 flex flex-col">
+            <div className="font-bold mb-2">{design.creatorName}</div>
+            <p className="text-sm text-gray-600 mb-2">{design.description}</p>
+            <div className="mt-auto">
+              <div className="text-lg font-semibold mb-2">
+                {design.price} ETH
+              </div>
+              {design.isListed && design.owner !== account && (
+                <Button 
+                  className="w-full"
+                  onClick={() => handleBuyDesign(design)}
+                  disabled={loading}
+                >
+                  {loading ? 'Processing...' : 'Buy Now'}
+                </Button>
+              )}
+              {design.owner === account && (
+                <div className="text-sm text-gray-500">You own this design</div>
+              )}
+            </div>
           </div>
-        ))}        {paginated.length === 0 && (
+        ))}
+
+        {paginated.length === 0 && (
           <div className="col-span-4 flex flex-col items-center justify-center p-12 text-center">
             <svg
               className="w-32 h-32 text-gray-300 mb-6"
@@ -167,31 +171,34 @@ export default function ExploreDesigns() {
               {t.explore.noDesigns}
             </h3>
             <p className="text-gray-500 mb-6 max-w-md">
-              {t.explore.noDesignsDescription || "Be the first to submit a design to our marketplace. Your creations could be the next big thing!"}
-            </p>            <button
-              onClick={handleSubmitDesign}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              {t.explore.submitDesign || "Submit a Design"}
-            </button>
+              {t.explore.noDesignsDescription}
+            </p>
+            <Button onClick={handleSubmitDesign}>
+              {t.explore.submitDesign}
+            </Button>
           </div>
         )}
       </div>
-      {/* Paginação */}
+
+      {/* Pagination */}
       <div className="flex justify-between items-center mt-6">
         <div />
         <div className="flex items-center gap-2">
-          <button
-            className="px-3 py-1 border rounded disabled:opacity-50"
+          <Button
+            variant="outline"
             onClick={() => setPage(page - 1)}
             disabled={page === 1}
-          >{t.explore.previous}</button>
+          >
+            {t.explore.previous}
+          </Button>
           <span>{t.explore.page} {page} {t.explore.of} {totalPages}</span>
-          <button
-            className="px-3 py-1 border rounded disabled:opacity-50"
+          <Button
+            variant="outline"
             onClick={() => setPage(page + 1)}
             disabled={page === totalPages}
-          >{t.explore.next}</button>
+          >
+            {t.explore.next}
+          </Button>
           <span className="ml-4">{t.explore.perPage}</span>
           <select
             className="p-1 border rounded"
@@ -202,7 +209,6 @@ export default function ExploreDesigns() {
               <option key={size} value={size}>{size}</option>
             ))}
           </select>
-          <span>{t.explore.perPage}</span>
         </div>
       </div>
     </div>

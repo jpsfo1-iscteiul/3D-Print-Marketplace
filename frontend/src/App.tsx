@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { UserProvider } from "./context/UserContext.tsx";
 import { LanguageProvider } from "./context/LanguageContext";
+import { Web3Provider } from "./context/Web3Context";
 import { appRoutes, AppRoute } from "@/routes";
 
 function renderRoutes(routes: AppRoute[]) {
@@ -30,11 +31,13 @@ const App = () => (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <UserProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>{renderRoutes(appRoutes)}</Routes>
-          </BrowserRouter>
+          <Web3Provider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>{renderRoutes(appRoutes)}</Routes>
+            </BrowserRouter>
+          </Web3Provider>
         </UserProvider>
       </TooltipProvider>
     </QueryClientProvider>

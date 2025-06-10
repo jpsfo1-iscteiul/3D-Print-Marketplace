@@ -6,8 +6,11 @@ module.exports = {
   solidity: "0.8.28",
   networks: {
     hardhat: {
-      // You can configure this for a local development network if needed,
-      // but defaults are usually fine for npx hardhat node
+      chainId: 1337
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      chainId: 1337
     },
     // Example for Sepolia testnet (UNCOMMENT AND FILL IN LATER WHEN READY FOR TESTNET)
     /*
@@ -17,4 +20,10 @@ module.exports = {
     },
     */
   },
+  paths: {
+    artifacts: "./artifacts",
+    cache: "./cache",
+    sources: "./contracts",
+    tests: "./test"
+  }
 };
