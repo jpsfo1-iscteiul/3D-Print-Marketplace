@@ -7,9 +7,18 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/use-toast";
 import { Loader2 } from "lucide-react";
+import { useWeb3 } from '../context/Web3Context';
+import { useDesign } from '../hooks/useDesign';
 
-// Data will come from blockchain based on connected wallet
-const designs = [];
+interface Design {
+  id: string;
+  tokenURI: string;
+  creatorName: string;
+  description: string;
+  price: string;
+  owner: string;
+  isListed: boolean;
+}
 
 const Designs = () => {
   const { t } = useLanguage();
@@ -17,23 +26,53 @@ const Designs = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { account, designRegistry } = useWeb3();
+  const { getDesign } = useDesign();
+  const [designs, setDesigns] = useState<Design[]>([]);
 
   // Function to load user's designs from blockchain
   const loadUserDesigns = async () => {
-    if (!isMetaMaskConnected) {
+    if (!isMetaMaskConnected || !account || !designRegistry) {
+      console.log('Missing requirements:', {
+        isMetaMaskConnected,
+        account,
+        hasDesignRegistry: !!designRegistry
+      });
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
-      // TODO: Implement blockchain call to get user's designs
-      // This will be implemented when blockchain is ready
-      setLoading(false);
+      console.log('Loading user designs...');
+      
+      // Get the total supply of tokens
+      const totalSupply = await designRegistry.nextTokenId();
+      console.log('Total supply:', totalSupply.toString());
+      
+      const userDesigns = [];
+      
+      // Check each token ID
+      for (let i = 0; i < totalSupply; i++) {
+        try {
+          const owner = await designRegistry.ownerOf(i);
+          if (owner.toLowerCase() === account.toLowerCase()) {
+            const design = await getDesign(i.toString());
+            if (design) {
+              userDesigns.push(design);
+            }
+          }
+        } catch (err) {
+          // Skip tokens that don't exist
+          continue;
+        }
+      }
+      
+      console.log('User designs:', userDesigns);
+      setDesigns(userDesigns);
     } catch (err) {
       console.error('Error loading designs:', err);
       setError(err instanceof Error ? err.message : 'Unknown error');
+    } finally {
       setLoading(false);
     }
   };
@@ -43,9 +82,9 @@ const Designs = () => {
     if (isMetaMaskConnected) {
       loadUserDesigns();
     }
-  }, [isMetaMaskConnected]);
+  }, [isMetaMaskConnected, account]);
 
-  const handleManage = (designId: number) => {
+  const handleManage = (design: Design) => {
     if (!isMetaMaskConnected) {
       toast({
         title: t.header.metamaskNotConnected,
@@ -56,7 +95,7 @@ const Designs = () => {
     }
     
     // TODO: Implement design management logic
-    console.log('Managing design:', designId);
+    console.log('Managing design:', design);
   };
 
   if (loading) {
@@ -127,7 +166,8 @@ const Designs = () => {
           </h3>
           <p className="text-gray-500 mb-6 max-w-md">
             {t.myDesigns.noDesignsDesc}
-          </p>          <Button onClick={() => navigate('/submit-design')}>
+          </p>
+          <Button onClick={() => navigate('/submit-design')}>
             {t.myDesigns.submitFirst}
           </Button>
         </div>
@@ -136,25 +176,22 @@ const Designs = () => {
           {designs.map((design) => (
             <Card key={design.id} className="shadow-sm">
               <CardContent className="pt-6">
-                <h2 className="text-xl font-semibold text-center mb-4">{design.title}</h2>
-              
+                <h2 className="text-xl font-semibold mb-4">{design.creatorName}</h2>
+                <p className="text-gray-600 mb-4">{design.description}</p>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t.myDesigns.status}</span>
-                    <Badge variant={design.status === 'Active' ? "success" : "secondary"}>
-                      {design.status}
+                    <span className="text-gray-600">Status</span>
+                    <Badge variant={design.isListed ? "success" : "secondary"}>
+                      {design.isListed ? "Listed" : "Not Listed"}
                     </Badge>
                   </div>
                   
+                  {design.isListed && (
                   <div className="flex justify-between">
-                    <span className="text-gray-600">{t.myDesigns.sales}</span>
-                    <span className="font-medium">{design.sales}</span>
+                      <span className="text-gray-600">Price</span>
+                      <span className="font-medium">{(Number(design.price) / 1e18).toString()} ETH</span>
                   </div>
-                  
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">{t.myDesigns.licenses}</span>
-                    <span className="font-medium">{design.licenses}</span>
-                  </div>
+                  )}
                 </div>
               </CardContent>
               
@@ -162,10 +199,10 @@ const Designs = () => {
                 <Button 
                   className="w-full" 
                   variant="default"
-                  onClick={() => handleManage(design.id)}
+                  onClick={() => handleManage(design)}
                   disabled={!isMetaMaskConnected}
                 >
-                  {isMetaMaskConnected ? t.myDesigns.manage : t.myDesigns.connectToManage}
+                  {isMetaMaskConnected ? "Manage" : "Connect to Manage"}
                 </Button>
               </CardFooter>
             </Card>

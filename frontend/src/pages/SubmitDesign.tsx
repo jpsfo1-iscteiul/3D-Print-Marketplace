@@ -8,6 +8,7 @@ import { useWeb3 } from '../context/Web3Context';
 import { useDesign } from '../hooks/useDesign';
 import { useLanguage } from '../context/LanguageContext';
 import { Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const SubmitDesign = () => {
   const { t } = useLanguage();
@@ -22,6 +23,7 @@ const SubmitDesign = () => {
     characteristics: '',
     price: ''
   });
+  const navigate = useNavigate();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -58,6 +60,15 @@ const SubmitDesign = () => {
       return;
     }
 
+    if (!formData.price || parseFloat(formData.price) <= 0) {
+      toast({
+        title: "Invalid price",
+        description: "Please enter a valid price greater than 0",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setSubmissionStep('uploading');
       // 1. Upload file to IPFS (in a real implementation)
@@ -72,37 +83,45 @@ const SubmitDesign = () => {
         formData.description
       );
 
-      if (tokenId) {
-        // 3. List the design for sale
-        setSubmissionStep('listing');
-        const success = await listDesign(tokenId, formData.price);
-        
-        if (success) {
-          setSubmissionStep('');
-          toast({
-            title: "Success!",
-            description: "Your design has been registered and listed for sale.",
-          });
+      if (!tokenId) {
+        throw new Error('Failed to register design');
+      }
 
-          // Reset form
-          setSelectedFile(null);
-          setFormData({
-            name: '',
-            description: '',
-            characteristics: '',
-            price: ''
-          });
-          
-          // Reset the file input
-          const fileInput = document.getElementById('file-input') as HTMLInputElement;
-          if (fileInput) fileInput.value = '';
-        }
+      // 3. List the design for sale
+      setSubmissionStep('listing');
+      const success = await listDesign(tokenId, formData.price);
+      
+      if (success) {
+        setSubmissionStep('');
+        toast({
+          title: "Success!",
+          description: "Your design has been registered and listed for sale.",
+        });
+
+        // Reset form
+        setSelectedFile(null);
+        setFormData({
+          name: '',
+          description: '',
+          characteristics: '',
+          price: ''
+        });
+        
+        // Reset the file input
+        const fileInput = document.getElementById('file-input') as HTMLInputElement;
+        if (fileInput) fileInput.value = '';
+        
+        // Redirect to My Designs
+        navigate('/designs');
+      } else {
+        throw new Error('Failed to list design for sale');
       }
     } catch (err) {
       setSubmissionStep('');
+      console.error('Error submitting design:', err);
       toast({
         title: "Error",
-        description: "Failed to submit design. Please try again.",
+        description: err instanceof Error ? err.message : "Failed to submit design. Please try again.",
         variant: "destructive"
       });
     }

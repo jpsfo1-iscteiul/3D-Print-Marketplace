@@ -99,26 +99,44 @@ export const Web3Provider: React.FC<{ children: React.ReactNode }> = ({ children
   const initializeEthers = async () => {
     if (window.ethereum) {
       try {
+        console.log('Initializing ethers...');
         const provider = new BrowserProvider(window.ethereum);
         setProvider(provider);
 
         // Initialize contracts
+        console.log('Getting signer...');
         const signer = await provider.getSigner();
         setSigner(signer);
 
+        const designRegistryAddress = import.meta.env.VITE_DESIGN_REGISTRY_ADDRESS;
+        const nftMarketplaceAddress = import.meta.env.VITE_NFT_MARKETPLACE_ADDRESS;
+
+        console.log('Contract addresses:', {
+          designRegistry: designRegistryAddress,
+          nftMarketplace: nftMarketplaceAddress
+        });
+
+        if (!designRegistryAddress || !nftMarketplaceAddress) {
+          throw new Error('Contract addresses not found in environment variables');
+        }
+
+        console.log('Initializing DesignRegistry contract...');
         const designRegistry = new Contract(
-          import.meta.env.VITE_DESIGN_REGISTRY_ADDRESS || '',
+          designRegistryAddress,
           DesignRegistryABI.abi,
           signer
         );
         setDesignRegistry(designRegistry);
 
+        console.log('Initializing NFTMarketplace contract...');
         const nftMarketplace = new Contract(
-          import.meta.env.VITE_NFT_MARKETPLACE_ADDRESS || '',
+          nftMarketplaceAddress,
           NFTMarketplaceABI.abi,
           signer
         );
         setNFTMarketplace(nftMarketplace);
+
+        console.log('Contract initialization complete');
       } catch (error) {
         console.error('Error initializing ethers:', error);
         toast({

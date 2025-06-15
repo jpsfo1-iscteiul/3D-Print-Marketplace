@@ -21,7 +21,7 @@ export default function ExploreDesigns() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const { userRole, setUserRole } = useUser();
-  const { account, isDesigner, setIsDesigner } = useWeb3();
+  const { account, isDesigner, setIsDesigner, designRegistry, nftMarketplace } = useWeb3();
   const { getDesign, buyDesign, loading, error } = useDesign();
   const [designs, setDesigns] = useState<Design[]>([]);
   const [search, setSearch] = useState("");
@@ -30,18 +30,41 @@ export default function ExploreDesigns() {
 
   useEffect(() => {
     const loadDesigns = async () => {
-      // In a real implementation, you would:
-      // 1. Query the total number of tokens
-      // 2. Fetch metadata for each token
-      // 3. Check if they are listed in the marketplace
-      // For now, we'll just show a placeholder
-      setDesigns([]);
+      if (!designRegistry || !nftMarketplace) return;
+
+      try {
+        console.log('Loading designs for explore page...');
+        const totalSupply = await designRegistry.nextTokenId();
+        console.log('Total supply:', totalSupply.toString());
+
+        const designsList: Design[] = [];
+        for (let i = 0; i < totalSupply; i++) {
+          try {
+            const design = await getDesign(i.toString());
+            if (design && design.isListed) {
+              // Format price from wei to ETH
+              const priceInEth = Number(design.price) / 1e18;
+              designsList.push({
+                ...design,
+                price: priceInEth.toString()
+              });
+            }
+          } catch (err) {
+            console.error(`Error fetching design ${i}:`, err);
+          }
+        }
+
+        console.log('Loaded designs:', designsList);
+        setDesigns(designsList);
+      } catch (err) {
+        console.error('Error loading designs:', err);
+      }
     };
 
     if (account) {
       loadDesigns();
     }
-  }, [account]);
+  }, [account, designRegistry, nftMarketplace]);
 
   // Filter logic
   const filtered = designs.filter((d) => {
