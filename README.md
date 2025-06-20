@@ -51,14 +51,14 @@ A decentralized marketplace for 3D printing designs built with Ethereum smart co
    npm run compile
    ```
 
-2. **Start local blockchain**
+2. **Start local Hardhat blockchain**
    ```bash
-   npm run node
+   npx hardhat node
    ```
 
 3. **Deploy contracts to local network** (in a new terminal)
    ```bash
-   npm run deploy:local
+   npx hardhat run scripts/deploy.js --network localhost
    ```
 
 4. **Start frontend development server** (in a new terminal)
@@ -103,8 +103,8 @@ A decentralized marketplace for 3D printing designs built with Ethereum smart co
 ### Root Directory
 - `npm run compile` - Compile smart contracts
 - `npm run copy-abis` - Copy contract ABIs to frontend
-- `npm run deploy:local` - Deploy contracts to local network
-- `npm run node` - Start local Hardhat node
+- `npx hardhat node` - Start local Hardhat blockchain
+- `npx hardhat run scripts/deploy.js --network localhost` - Deploy contracts to local network
 - `npm test` - Run contract tests
 
 ### Frontend Directory
@@ -151,8 +151,8 @@ npx hardhat test test/NFTMarketplace.test.js
 ## 🚀 Deployment
 
 ### Local Development
-1. Start local node: `npm run node`
-2. Deploy contracts: `npm run deploy:local`
+1. Start local Hardhat blockchain: `npx hardhat node`
+2. Deploy contracts: `npx hardhat run scripts/deploy.js --network localhost`
 3. Start frontend: `cd frontend && npm run dev`
 
 ### Testnet Deployment
